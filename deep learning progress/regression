@@ -1,0 +1,123 @@
+import torch
+
+import torch.nn.functional as F
+
+import matplotlib.pyplot as plt
+
+from torch.autograd import Variable
+
+#导入各种函数库
+
+
+
+x=torch.unsqueeze(torch.linspace(-1,1,100), dim=1)
+
+y=x**2+0.2*torch.rand(x.size())
+
+x,y = Variable(x), Variable(y)
+
+#定义随机生成的x，y值，x为区间-1到1的一百个点，并unsqueeze成一个一维张量，y=x**2+随机生成的属于0到1区间的，等于x尺寸的张量。
+
+
+
+plt.scatter(x.data.numpy(), y.data.numpy())
+
+plt.show()
+
+#可视化绘图
+
+
+
+
+
+class Net(torch.nn.Module):
+
+    def __init__(self, n_feature, n_hidden, n_output):
+
+        super(Net, self).__init__()#继承torch.nn.Module函数，传统三件套
+
+        self.hidden=torch.nn.Linear(n_feature, n_hidden)#线性拟合，n_feature为输入张量维数，n_hidden为输出张量维数
+
+        self.predict=torch.nn.Linear(n_hidden, n_output)#同上
+
+
+
+    def forward(self,x):#正向传播过程，先经过hidden层，再用relu激活，后经过prediction层得到输出
+
+        x=F.relu(self.hidden(x))
+
+        x=self.predict(x)
+
+        return x
+
+
+
+
+
+
+
+net = Net(n_feature=1, n_hidden=10, n_output=1)#定义输入输出维数
+
+print(net)
+
+
+
+
+
+optimizer = torch.optim.SGD(net.parameters(), lr=0.2)#net.parameters()为上述神经网络中的自动生成的权重与偏差，lr为学习率，sgd为随机梯度下降函数
+
+
+
+loss_func = torch.nn.MSELoss()#loss函数为平均方差函数
+
+
+
+
+
+for t in range(200):
+
+    prediction = net(x)
+
+    loss = loss_func(prediction, y)
+
+    optimizer.zero_grad()
+
+    loss.backward()
+
+    optimizer.step()#对应每一次正反向传播的一次学习
+
+    if t % 5 == 0:
+
+
+
+        plt.cla()
+
+
+
+        plt.scatter(x.data.numpy(), y.data.numpy())
+
+
+
+        plt.plot(x.data.numpy(), prediction.data.numpy(), 'r-', lw=5)
+
+
+
+        plt.text(0.5, 0, 'Loss=%.4f' % loss.data.numpy(), fontdict={'size': 20, 'color':  'red'})
+
+
+
+        plt.pause(0.1)
+
+
+
+
+
+
+
+plt.ioff()
+
+
+
+plt.show()
+
+#实时图像变更，对应每一次正反向传播的学习
